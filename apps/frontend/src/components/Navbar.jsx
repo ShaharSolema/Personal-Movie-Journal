@@ -1,6 +1,7 @@
 import React from "react";
 import Logo from "./Logo.jsx";
 import {Search } from "lucide-react";
+import {Link} from 'react-router';
 const Navbar = () => {
     return (
         <nav className="bg-black text-red-200 flex justify-between items-center p-4 h-20
@@ -23,7 +24,9 @@ const Navbar = () => {
                 </div>
                 
                 <button className="bg-[#e50914] px-5 py-2 text-white cursor-pointer rounded-full hover:bg-[#b20710]">Get AI Movie Picks</button>
+                <Link to={"/signin"}>
                 <button className="border border-[#333333] py-2 px-4 cursor-pointer hover:bg-[#e50914] rounded-full">Sign In</button>
+                </Link>
             </div>
         </nav>
     );

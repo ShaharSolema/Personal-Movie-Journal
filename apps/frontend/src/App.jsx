@@ -1,6 +1,10 @@
+import {Route,Routes} from 'react-router';
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
+import Moviepage from './pages/Moviepage';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
 
 function App() {
     return (
@@ -13,7 +17,12 @@ function App() {
         >
             {/* App-level providers */}
             <Navbar/>
-            <Home/>
+            <Routes>
+                <Route path="/" element={<Home />}/>
+                <Route path="/movie/:id" element={<Moviepage />}/>
+                <Route path="/signin" element={<SignIn />}/>
+                <Route path="/signup" element={<SignUp />}/>
+            </Routes>
         </MantineProvider>
     );
 }
