@@ -5,11 +5,17 @@ import Home from "./pages/Home";
 import Moviepage from './pages/Moviepage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import Toaster from 'react-hot-toast';
+
 function App() {
     return (
-       <div>
-            <Toaster />
+        <MantineProvider
+            theme={{
+                fontFamily: "Trebuchet MS, 'Lucida Sans Unicode', 'Lucida Grande', sans-serif",
+                primaryColor: "blue",
+                defaultRadius: "md"
+            }}
+        >
+            {/* App-level providers */}
             <Navbar/>
             <Routes>
                 <Route path="/" element={<Home />}/>
@@ -17,7 +23,7 @@ function App() {
                 <Route path="/signin" element={<SignIn />}/>
                 <Route path="/signup" element={<SignUp />}/>
             </Routes>
-        </div>
+        </MantineProvider>
     );
 }
 

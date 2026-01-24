@@ -15,11 +15,11 @@ const authRequired = (req, res, next) => {
     }
     try {
         const payload = jwt.verify(token, jwtSecret);
-        const userId = payload.sub || payload.id || payload._id;
+        const userId = payload.sub || payload.userId || payload.id || payload._id;
         if (!userId) {
             return res.status(401).json({ message: 'Unauthorized.' });
         }
-        req.user = { _id: userId, role: payload.role };
+        req.user = { _id: userId, role: payload.role, username: payload.username };
         return next();
     } catch (error) {
         return res.status(401).json({ message: 'Unauthorized.' });
