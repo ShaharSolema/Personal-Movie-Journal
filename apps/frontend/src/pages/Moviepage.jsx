@@ -102,7 +102,7 @@ const Moviepage=()=>{
                 <h2 className="text-2xl font-semibold mb-4">Details</h2>
                 <div className="bg-[#232323] rounded-lg shadow-lg p-6 flex flex-col md:flex-row gap-8">
                     <div className="flex-1">
-                        <ul className="text-gey-300 space-y-3">
+                        <ul className="text-gray-300 space-y-3">
                             <li>
                                 <span className="font-semibold text-white">Status: </span>
                                 <span className="ml-2 text-gray-400">{movie.status}</span>

@@ -28,7 +28,18 @@ async function registerUser(req, res) {
             email: normalizedEmail,
             password: hashedPassword
         });
+        if (newUser){
+            const token=jwt.sign({id:newUser._id},process.env.JWT_SECRET,{
+                expiresIn:"7d",
+            });
+            res.cookie("token",token,{
+                httpOnly:true,
+                secure:process.env.NODE_ENV==="production",
+                sameSite: "strict",
+            });
+        }
         await newUser.save();
+        
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
         console.error('Error registering user:', error);
@@ -37,12 +48,12 @@ async function registerUser(req, res) {
 }
 async function loginUser(req, res) {
     try {
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
-        if(!email || !password) {
-            return res.status(400).json({ message: 'Email and password are required' });
+        if(!username || !password) {
+            return res.status(400).json({ message: 'Username and password are required' });
         }
-        const user=await User.findOne({ email: email.trim().toLowerCase() });
+        const user=await User.findOne({ username: username.trim().toLowerCase() });
         if(!user) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
@@ -55,7 +66,7 @@ async function loginUser(req, res) {
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
-        res.coockie('token', token, {
+        res.cookie('token', token, {
             httpOnly: true,
             sameSite: 'Lax',
             secure: process.env.NODE_ENV === 'production',
@@ -130,60 +141,6 @@ async function getCurrentUser(req, res) {
     }
 }
 
-async function addedJournalEntry(req, res) {
-    try {
-        const { movieId, status, personalRating, personalComment, isFavorite } = req.body;
-        if (!movieId || !status) {
-            return res.status(400).json({ message: 'Movie ID and status are required' });
-        }
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const newEntry = {
-            movie: movieId,
-            watchStatus: status,
-            personalRating,
-            personalComment,
-            isFavorite
-        };
-        user.journalEntries.push(newEntry);
-        await user.save();
-        res.status(201).json({ message: 'Journal entry added successfully', entry: newEntry });
-    } catch (error) {
-        console.error('Error adding journal entry:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-}
 
-const getJournalEntries = async (req, res) => {
-    try {
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.status(200).json({ journalEntries: user.journalEntries });
-    } catch (error) {
-        console.error('Error fetching journal entries:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
 
-const deleteJournalEntry = async (req, res) => {
-    try {
-        const { entryId } = req.params;
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        user.journalEntries.id(entryId).remove();
-        await user.save();
-        res.status(200).json({ message: 'Journal entry deleted successfully' });
-    }
-    catch (error) {
-        console.error('Error deleting journal entry:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }   
-};
-
-export { registerUser, loginUser, logoutUser, updateUser, getCurrentUser, addedJournalEntry, getJournalEntries, deleteJournalEntry };
+export { registerUser, loginUser, logoutUser, updateUser, getCurrentUser };

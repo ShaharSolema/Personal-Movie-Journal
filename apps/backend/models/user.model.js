@@ -59,10 +59,6 @@ const UserSchema = new Schema({
         required: true,
         minlength: 6,
         maxlength: 60
-    },
-    journalEntries: {
-        type: [JournalEntrySchema],
-        default: []
     }
 });
 
