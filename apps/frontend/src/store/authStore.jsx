@@ -1,23 +1,19 @@
 import { create } from "zustand";
-import axios from "axios";
-
-axios.defaults.withCredentials = true;
-
-const API_BASE_URL = "http://localhost:3000/api/users";
+import apiClient from "../lib/apiClient";
 
 export const useAuthStore = create((set) => ({
     user: null,
     isLoading: false,
     error: null,
     message: null,
-    fetchingUser: true,
+    fetchingUser: false,
 
 
     signup: async (username, email, password) => {
         set({ isLoading: true, message: null });
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/register`, {
+            const response = await apiClient.post(`/users/register`, {
                 username,
                 email,
                 password
@@ -34,7 +30,7 @@ export const useAuthStore = create((set) => ({
     login:async (username,password)=>{
         set({isLoading:true,message:null,error:null});
         try {
-            const response= await axios.post(`${API_BASE_URL}/login`,{
+            const response= await apiClient.post(`/users/login`,{
                 username,
                 password
             });
@@ -53,6 +49,27 @@ export const useAuthStore = create((set) => ({
             set({isLoading:false,error:error.response?.data?.message||"error login"});
             throw error;
         }
+    },
+
+    fetchCurrentUser: async () => {
+        set({ fetchingUser: true, error: null });
+        try {
+            const response = await apiClient.get(`/users/me`);
+            set({ user: response.data.user, fetchingUser: false });
+            return response.data.user;
+        } catch (error) {
+            set({ user: null, fetchingUser: false });
+            return null;
+        }
+    },
+
+    logout: async () => {
+        try {
+            await apiClient.post(`/users/logout`);
+        } catch (error) {
+            // Ignore logout errors to ensure UI clears state.
+        }
+        set({ user: null });
     }
 
 }));
