@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -35,6 +35,7 @@ function App() {
                 <Route path="/search" element={<Search />}/>
                 <Route path="/movie/:id" element={<Moviepage />}/>
                 <Route path="/my-space" element={<MySpace />}/>
+                <Route path="/myspace" element={<Navigate to="/my-space" replace />}/>
                 <Route path="/ai-picks" element={<AiPicks />}/>
                 <Route path="/signin" element={<SignIn />}/>
                 <Route path="/signup" element={<SignUp />}/>
