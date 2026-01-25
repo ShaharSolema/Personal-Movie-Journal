@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import { Bookmark } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useJournalStore } from "../store/journalStore";
 
 // SaveButton adds a movie to "My Space" as "Want to Watch".
 const SaveButton = ({ movie, onSaved, compact = false }) => {
+    const navigate = useNavigate();
     const user = useAuthStore((state) => state.user);
     const addEntry = useJournalStore((state) => state.addEntry);
     const updateEntry = useJournalStore((state) => state.updateEntry);
     const deleteEntry = useJournalStore((state) => state.deleteEntry);
     const fetchEntryByTmdb = useJournalStore((state) => state.fetchEntryByTmdb);
+    const entry = useJournalStore((state) =>
+        movie?.id ? state.entriesByTmdb[movie.id] : null
+    );
     const [isSaved, setIsSaved] = useState(false);
     const [entryId, setEntryId] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -23,13 +28,18 @@ const SaveButton = ({ movie, onSaved, compact = false }) => {
                 setEntryId(null);
                 return;
             }
-            const entry = await fetchEntryByTmdb(movie.id);
-            // "Save for Later" means watchStatus === "want_to_watch".
-            setIsSaved(entry?.watchStatus === "want_to_watch");
-            setEntryId(entry?._id || null);
+            if (entry) {
+                // "Save for Later" means watchStatus === "want_to_watch".
+                setIsSaved(entry.watchStatus === "want_to_watch");
+                setEntryId(entry._id || null);
+                return;
+            }
+            const fetched = await fetchEntryByTmdb(movie.id);
+            setIsSaved(fetched?.watchStatus === "want_to_watch");
+            setEntryId(fetched?._id || null);
         };
         loadSavedState();
-    }, [user, movie, fetchEntryByTmdb]);
+    }, [user, movie?.id, entry, fetchEntryByTmdb]);
 
     const handleSave = async (event) => {
         // Prevent navigation when this button is inside a Link.
@@ -37,7 +47,7 @@ const SaveButton = ({ movie, onSaved, compact = false }) => {
         event.stopPropagation();
 
         if (!user) {
-            setError("Sign in to save movies.");
+            navigate("/signin");
             return;
         }
         if (!movie?.id || !movie?.title) {

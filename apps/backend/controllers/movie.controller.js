@@ -1,4 +1,5 @@
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_LIST_CATEGORIES = new Set(["now_playing", "popular", "top_rated", "upcoming"]);
 
 function getTmdbHeaders() {
     const token = process.env.TMDB_TOKEN;
@@ -33,6 +34,23 @@ async function tmdbRequest(path, queryParams = {}) {
     }
 
     return response.json();
+}
+
+async function getMovieList(req, res) {
+    try {
+        const { category } = req.params;
+        if (!TMDB_LIST_CATEGORIES.has(category)) {
+            return res.status(400).json({ message: "Unsupported category." });
+        }
+        const data = await tmdbRequest(`/movie/${category}`, {
+            language: "en-US",
+            page: req.query.page || 1
+        });
+        return res.status(200).json(data);
+    } catch (error) {
+        const status = error.status || 500;
+        return res.status(status).json({ message: "Failed to load movies." });
+    }
 }
 
 async function searchMovies(req, res) {
@@ -91,6 +109,7 @@ async function getMovieVideos(req, res) {
 }
 
 export {
+    getMovieList,
     searchMovies,
     getMovieDetails,
     getMovieRecommendations,

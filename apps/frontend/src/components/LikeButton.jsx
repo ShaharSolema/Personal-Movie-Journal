@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import apiClient from "../lib/apiClient";
 import { useAuthStore } from "../store/authStore";
 import { useJournalStore } from "../store/journalStore";
 
 // LikeButton adds a movie straight to favorites and fills the heart icon.
 const LikeButton = ({ movie, compact = false }) => {
+    const navigate = useNavigate();
     const user = useAuthStore((state) => state.user);
     const fetchEntryByTmdb = useJournalStore((state) => state.fetchEntryByTmdb);
     const updateEntry = useJournalStore((state) => state.updateEntry);
     const deleteEntry = useJournalStore((state) => state.deleteEntry);
+    const setEntryByTmdb = useJournalStore((state) => state.setEntryByTmdb);
+    const entry = useJournalStore((state) =>
+        movie?.id ? state.entriesByTmdb[movie.id] : null
+    );
     const [isFavorite, setIsFavorite] = useState(false);
     const [entryId, setEntryId] = useState(null);
     const [error, setError] = useState(null);
@@ -23,12 +29,17 @@ const LikeButton = ({ movie, compact = false }) => {
                 setEntryId(null);
                 return;
             }
-            const entry = await fetchEntryByTmdb(movie.id);
-            setIsFavorite(Boolean(entry?.isFavorite));
-            setEntryId(entry?._id || null);
+            if (entry) {
+                setIsFavorite(Boolean(entry.isFavorite));
+                setEntryId(entry._id || null);
+                return;
+            }
+            const fetched = await fetchEntryByTmdb(movie.id);
+            setIsFavorite(Boolean(fetched?.isFavorite));
+            setEntryId(fetched?._id || null);
         };
         loadFavoriteState();
-    }, [user, movie, fetchEntryByTmdb]);
+    }, [user, movie?.id, entry, fetchEntryByTmdb]);
 
     const handleLike = async (event) => {
         // Prevent the parent Link from navigating when clicking this button.
@@ -40,7 +51,7 @@ const LikeButton = ({ movie, compact = false }) => {
             return;
         }
         if (!user) {
-            setError("Sign in to add favorites.");
+            navigate("/signin");
             return;
         }
 
@@ -69,6 +80,9 @@ const LikeButton = ({ movie, compact = false }) => {
                 });
                 setIsFavorite(true);
                 setEntryId(response.data?._id || entryId);
+                if (response.data) {
+                    setEntryByTmdb(response.data);
+                }
             }
         } catch (err) {
             setError("Could not save favorite.");

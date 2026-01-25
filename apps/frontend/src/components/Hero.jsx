@@ -2,17 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { Link } from "react-router-dom";
+import apiClient from "../lib/apiClient";
 import "swiper/css";
 import LikeButton from "./LikeButton";
 import SaveButton from "./SaveButton";
-
-const TMDB_OPTIONS = {
-    method: "GET",
-    headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN || ""}`
-    }
-};
 
 const Hero = ({ onLoaded }) => {
     const [movies, setMovies] = useState([]);
@@ -21,23 +14,37 @@ const Hero = ({ onLoaded }) => {
     useEffect(() => {
 
 
-        fetch(
-            "https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1",
-            TMDB_OPTIONS
-        )
-            .then((res) => res.json())
-            .then((res) => {
-                if (res.results && res.results.length > 0) {
-                    setMovies(res.results.filter((movie) => movie.backdrop_path));
+        let isActive = true;
+        const loadUpcoming = async () => {
+            try {
+                const response = await apiClient.get("/movies/category/upcoming", {
+                    params: { page: 1 }
+                });
+                if (!isActive) {
+                    return;
                 }
-            })
-            .catch((err) => console.error(err))
-            .finally(() => {
+                const results = response.data?.results || [];
+                if (results.length > 0) {
+                    setMovies(results.filter((movie) => movie.backdrop_path));
+                }
+            } catch (err) {
+                if (!isActive) {
+                    return;
+                }
+                console.error(err);
+            } finally {
                 // Notify parent that Hero finished loading (success or error).
                 if (onLoaded) {
                     onLoaded();
                 }
-            });
+            }
+        };
+
+        loadUpcoming();
+
+        return () => {
+            isActive = false;
+        };
     }, []);
     if (!movies.length) {
         return <div>Loading...</div>;

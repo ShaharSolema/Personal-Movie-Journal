@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useJournalStore } from "../store/journalStore";
 import { useAuthStore } from "../store/authStore";
 
@@ -9,6 +10,7 @@ const tabs = [
 ];
 
 const MySpace = () => {
+    const navigate = useNavigate();
     const user = useAuthStore((state) => state.user);
     const {
         entries,
@@ -28,16 +30,17 @@ const MySpace = () => {
     });
 
     useEffect(() => {
-        // Load entries every time the user or the selected tab changes.
         if (!user) {
+            navigate("/signin");
             return;
         }
+        // Load entries every time the user or the selected tab changes.
         if (activeTab === "favorites") {
             fetchEntries({ favorites: true });
         } else {
             fetchEntries({ status: activeTab });
         }
-    }, [activeTab, fetchEntries, user]);
+    }, [activeTab, fetchEntries, navigate, user]);
 
     // Start editing a specific movie entry.
     const startEdit = (entry) => {
@@ -82,11 +85,7 @@ const MySpace = () => {
     };
 
     if (!user) {
-        return (
-            <div className="min-h-screen bg-[#141414] text-white flex items-center justify-center">
-                <p className="text-gray-300">Sign in to view your movie space.</p>
-            </div>
-        );
+        return null;
     }
 
     return (
