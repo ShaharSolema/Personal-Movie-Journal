@@ -2,6 +2,8 @@ import {User} from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const TOKEN_EXPIRY = "7d";
+
 async function registerUser(req, res) {
     try {
         const { username, email, password } = req.body;
@@ -28,19 +30,29 @@ async function registerUser(req, res) {
             email: normalizedEmail,
             password: hashedPassword
         });
-        if (newUser){
-            const token=jwt.sign({id:newUser._id},process.env.JWT_SECRET,{
-                expiresIn:"7d",
-            });
-            res.cookie("token",token,{
-                httpOnly:true,
-                secure:process.env.NODE_ENV==="production",
-                sameSite: "strict",
-            });
-        }
         await newUser.save();
-        
-        res.status(201).json({ message: 'User registered successfully' });
+
+        const token = jwt.sign(
+            { sub: newUser._id, username: newUser.username },
+            process.env.JWT_SECRET,
+            { expiresIn: TOKEN_EXPIRY }
+        );
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/"
+        });
+
+        res.status(201).json({
+            message: 'User registered successfully',
+            user: {
+                _id: newUser._id,
+                username: newUser.username,
+                email: newUser.email
+            },
+            token
+        });
     } catch (error) {
         console.error('Error registering user:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -55,16 +67,16 @@ async function loginUser(req, res) {
         }
         const user=await User.findOne({ username: username.trim().toLowerCase() });
         if(!user) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if(!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
         const token = jwt.sign(
-            { userId: user._id, username: user.username },
+            { sub: user._id, username: user.username },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: TOKEN_EXPIRY }
         );
         res.cookie('token', token, {
             httpOnly: true,
@@ -72,7 +84,15 @@ async function loginUser(req, res) {
             secure: process.env.NODE_ENV === 'production',
             path: '/'
         });
-        res.status(200).json({ message: 'Login successful', token });
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email
+            }
+        });
     } catch (error) {
         console.error('Error logging in user:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -111,14 +131,27 @@ async function updateUser(req, res) {
             }
             updates.email = newEmail.trim().toLowerCase();
         }
-        if (updates.username||updates.email) {  
-            const existingUser = await User.findOne({ _id:{$ne:req.user._id}, $or: [ updates.email?{ email: updates.email }:null, updates.username?{ username: updates.username }:null] });
+        if (updates.username||updates.email) {
+            const orConditions = [];
+            if (updates.email) {
+                orConditions.push({ email: updates.email });
+            }
+            if (updates.username) {
+                orConditions.push({ username: updates.username });
+            }
+            const existingUser = await User.findOne({
+                _id: { $ne: req.user._id },
+                $or: orConditions
+            });
             if (existingUser) {
                 return res.status(409).json({ message: 'Username or email already in use' });
             }
         }
-        const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, {
-            new: true});
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            updates,
+            { new: true }
+        ).select("username email");
         if (!updatedUser) {
             return res.status(404).json({ message: 'User not found' });
         }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import bg from "../../png/background.png";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
 

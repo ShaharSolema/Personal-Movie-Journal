@@ -1,6 +1,6 @@
 import { JournalEntry } from "../models/journalEntry.model.js";
 
-const VALID_STATUSES = ["want_to_watch", "watched"];
+const VALID_STATUSES = ["none", "want_to_watch", "watched"];
 
 async function listEntries(req, res) {
     try {
@@ -112,4 +112,87 @@ async function deleteEntry(req, res) {
     }
 }
 
-export { listEntries, addEntry, updateEntry, deleteEntry };
+// Find a journal entry by TMDB id for the current user.
+async function getEntryByTmdb(req, res) {
+    try {
+        const tmdbId = Number(req.params.tmdbId);
+        if (!tmdbId) {
+            return res.status(400).json({ message: "tmdbId must be a number." });
+        }
+
+        const entry = await JournalEntry.findOne({
+            user: req.user._id,
+            tmdbId
+        });
+
+        if (!entry) {
+            return res.status(404).json({ message: "Entry not found." });
+        }
+
+        return res.status(200).json(entry);
+    } catch (error) {
+        return res.status(500).json({ message: "Failed to load entry." });
+    }
+}
+
+// Add or update a favorite entry using the TMDB id.
+async function setFavoriteByTmdb(req, res) {
+    try {
+        const tmdbId = Number(req.params.tmdbId);
+        if (!tmdbId) {
+            return res.status(400).json({ message: "tmdbId must be a number." });
+        }
+
+        const {
+            title,
+            releaseYear,
+            posterPath,
+            imdbRating,
+            watchStatus
+        } = req.body;
+
+        // If the entry already exists, just set favorite to true.
+        const existing = await JournalEntry.findOne({
+            user: req.user._id,
+            tmdbId
+        });
+
+        if (existing) {
+            existing.isFavorite = true;
+            await existing.save();
+            return res.status(200).json(existing);
+        }
+
+        // Otherwise create a new entry in the user's space.
+        if (!title) {
+            return res.status(400).json({ message: "title is required to create." });
+        }
+        if (watchStatus && !VALID_STATUSES.includes(watchStatus)) {
+            return res.status(400).json({ message: "Invalid watch status." });
+        }
+
+        const entry = await JournalEntry.create({
+            user: req.user._id,
+            tmdbId,
+            title,
+            releaseYear,
+            posterPath,
+            imdbRating,
+            watchStatus: watchStatus || "want_to_watch",
+            isFavorite: true
+        });
+
+        return res.status(201).json(entry);
+    } catch (error) {
+        return res.status(500).json({ message: "Failed to favorite movie." });
+    }
+}
+
+export {
+    listEntries,
+    addEntry,
+    updateEntry,
+    deleteEntry,
+    getEntryByTmdb,
+    setFavoriteByTmdb
+};

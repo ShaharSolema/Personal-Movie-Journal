@@ -35,7 +35,7 @@ const JournalEntrySchema = new Schema(
         },
         watchStatus: {
             type: String,
-            enum: ["want_to_watch", "watched"],
+            enum: ["none", "want_to_watch", "watched"],
             default: "want_to_watch",
             required: true
         },

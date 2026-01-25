@@ -1,35 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { Bookmark, Heart } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
-import {Link} from "react-router";
+import { Link } from "react-router-dom";
 import "swiper/css";
 import LikeButton from "./LikeButton";
 import SaveButton from "./SaveButton";
 
+const TMDB_OPTIONS = {
+    method: "GET",
+    headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN || ""}`
+    }
+};
 
-const Hero = () => {
+const Hero = ({ onLoaded }) => {
     const [movies, setMovies] = useState([]);
-    const options = {
-        method: 'GET',
-        headers: {
-            accept: 'application/json',
-        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmMTI1NWY2NjUwYzIyZDFhZGEwYTlmMDRiNmRiNjk3OCIsIm5iZiI6MTc2ODg1MzgwNS40ODMsInN1YiI6IjY5NmU5MTJkMzA1MmE1NTMyZjIwZDllNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.hw7lsouzv5l7hcMSRwC1GRKPfcaCjChsmOSEtq86bJ0'
-        }
-    };
 
 
     useEffect(() => {
 
 
-        fetch("https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1", options)
+        fetch(
+            "https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1",
+            TMDB_OPTIONS
+        )
             .then((res) => res.json())
             .then((res) => {
                 if (res.results && res.results.length > 0) {
                     setMovies(res.results.filter((movie) => movie.backdrop_path));
                 }
             })
-            .catch((err) => console.error(err));
+            .catch((err) => console.error(err))
+            .finally(() => {
+                // Notify parent that Hero finished loading (success or error).
+                if (onLoaded) {
+                    onLoaded();
+                }
+            });
     }, []);
     if (!movies.length) {
         return <div>Loading...</div>;
@@ -55,9 +63,9 @@ const Hero = () => {
                                     alt={movie.title}
                                     className="w-full rounded-2xl h-[700px] object-cover"
                                 />
-                                <div className="flex space-x-2 md:space-x-4 absolute bottom-3 left-4" >
-                                        <SaveButton/>
-                                        <LikeButton/>
+                                    <div className="flex space-x-2 md:space-x-4 absolute bottom-3 left-4" >
+                                        <SaveButton movie={movie} />
+                                        <LikeButton movie={movie} />
                                     </div>
                             </div>
                         </Link>

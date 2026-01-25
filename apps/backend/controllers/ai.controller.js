@@ -1,7 +1,7 @@
 // Gemini AI movie recommendations endpoint.
 // This keeps the API key on the server (safer than exposing in the browser).
-const GEMINI_URL =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+// Use v1beta for maximum model compatibility.
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 function buildPrompt(userPrompt) {
     const basePrompt =
@@ -22,27 +22,36 @@ async function getAiPicks(req, res) {
         }
 
         const prompt = buildPrompt(req.query.prompt || "");
-        const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                contents: [
-                    {
-                        role: "user",
-                        parts: [{ text: prompt }]
+        const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+        const response = await fetch(
+            `${GEMINI_BASE_URL}/models/${model}:generateContent`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-goog-api-key": apiKey
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [{ text: prompt }]
+                        }
+                    ],
+                    generationConfig: {
+                        temperature: 0.7
                     }
-                ],
-                generationConfig: {
-                    temperature: 0.7
-                }
-            })
-        });
+                })
+            }
+        );
 
         if (!response.ok) {
             const text = await response.text();
-            return res.status(500).json({ message: "Gemini request failed.", text });
+            return res.status(response.status).json({
+                message: "Gemini request failed.",
+                status: response.status,
+                text
+            });
         }
 
         const data = await response.json();
@@ -54,6 +63,17 @@ async function getAiPicks(req, res) {
             const parsed = JSON.parse(text);
             return res.status(200).json({ items: parsed });
         } catch (error) {
+            // Simple fallback: try to extract a JSON array if the model added extra text.
+            const start = text.indexOf("[");
+            const end = text.lastIndexOf("]");
+            if (start !== -1 && end !== -1 && end > start) {
+                try {
+                    const parsed = JSON.parse(text.slice(start, end + 1));
+                    return res.status(200).json({ items: parsed });
+                } catch (innerError) {
+                    return res.status(200).json({ items: [], raw: text });
+                }
+            }
             return res.status(200).json({ items: [], raw: text });
         }
     } catch (error) {

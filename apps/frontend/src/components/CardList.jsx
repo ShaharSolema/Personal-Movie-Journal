@@ -1,38 +1,62 @@
-import Hero from "./Hero";
 import {Swiper,SwiperSlide} from 'swiper/react';
 import 'swiper/css';
-import Url from "../../png/MyLOGO.png";
 import { useEffect, useState } from "react";
-import {Link} from "react-router";
+import { Link } from "react-router-dom";
+import SaveButton from "./SaveButton";
+import LikeButton from "./LikeButton";
+
+const TMDB_OPTIONS = {
+    method: "GET",
+    headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN || ""}`
+    }
+};
 
 
-const CardList = ({title,category}) => {
+const CardList = ({ title, category, onLoaded }) => {
     const [data,setData]=useState([])
-    const options = {
-        method: 'GET',
-        headers: {
-        accept: 'application/json',
-        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmMTI1NWY2NjUwYzIyZDFhZGEwYTlmMDRiNmRiNjk3OCIsIm5iZiI6MTc2ODg1MzgwNS40ODMsInN1YiI6IjY5NmU5MTJkMzA1MmE1NTMyZjIwZDllNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.hw7lsouzv5l7hcMSRwC1GRKPfcaCjChsmOSEtq86bJ0'
-        }
-    };
     useEffect(()=>{
-        fetch(`https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1`, options)
+        fetch(
+            `https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1`,
+            TMDB_OPTIONS
+        )
             .then(res => res.json())
             .then(res => setData(res.results))
-            .catch(err => console.error(err));
-        },[]);
+            .catch(err => console.error(err))
+            .finally(() => {
+                // Notify parent that this card list finished loading.
+                if (onLoaded) {
+                    onLoaded(category);
+                }
+            });
+        },[category]);
     return (
         <div className="text-white md:px-4 ">
             <h2 className="pt-10 pb-5 text-lg font-medium">{title}</h2>
-            <Swiper slidesPerView={"auto"}className="MySwiper" spaceBetween={10}>
+            <Swiper
+                slidesPerView={"auto"}
+                className="MySwiper"
+                spaceBetween={10}
+                loop={data.length > 6}
+                loopAdditionalSlides={6}
+            >
             {data.map((item,index)=>(
                 <SwiperSlide  key={index} className="max-w-72">
-                    <Link to={`/movie/${item.id}`}>                    
-                    <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-3 shadow-lg h-75">
-                        <img src={`https://image.tmdb.org/t/p/w500/${item.backdrop_path}`} alt={item.title} className="h-44 w-full object-center object-cover" />
-                        <h3 className="text-center pt-2">{item.title}</h3>
-                        <p>{item.description}</p>
-                    </div>
+                    <Link to={`/movie/${item.id}`}>
+                        <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-3 shadow-lg h-75 cursor-pointer">
+                            <img
+                                src={`https://image.tmdb.org/t/p/w500/${item.backdrop_path}`}
+                                alt={item.title}
+                                className="h-44 w-full object-center object-cover rounded-lg"
+                            />
+                            <h3 className="text-center pt-2">{item.title}</h3>
+                            {/* Quick actions keep the card feeling complete. */}
+                            <div className="flex gap-2 justify-center mt-3">
+                                <SaveButton movie={item} compact />
+                                <LikeButton movie={item} compact />
+                            </div>
+                        </div>
                     </Link>
 
 
