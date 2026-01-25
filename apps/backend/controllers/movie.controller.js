@@ -1,48 +1,98 @@
-import {Movie} from '../models/movie.model.js';
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-const createMovie= async (req, res)=>   {
-    try {
-        const { title, relaseyear, genre, director, rating } = req.body;
-        if (!title || !relaseyear || !genre || !director) {
-            return res.status(400).json({ message: 'Title, release year, genre, and director are required' });
+function getTmdbHeaders() {
+    const token = process.env.TMDB_TOKEN;
+    if (!token) {
+        throw new Error("TMDB_TOKEN is not configured.");
+    }
+    return {
+        accept: "application/json",
+        Authorization: `Bearer ${token}`
+    };
+}
+
+async function tmdbRequest(path, queryParams = {}) {
+    const url = new URL(`${TMDB_BASE_URL}${path}`);
+    Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            url.searchParams.set(key, String(value));
         }
-        const newMovie = new Movie({
-            title: title.trim(),
-            relaseyear,
-            genre,
-            director: director.trim(),
-            rating
-        });
-        await newMovie.save();
-        res.status(201).json({ message: 'Movie created successfully', movie: newMovie });
-    } catch (error) {
-        console.error('Error creating movie:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-const getMovies=async (req, res) =>{
-    try {
-        const movies = await Movie.find();
-        res.status(200).json(movies);
-    } catch (error) {
-        console.error('Error fetching movies:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
+    });
 
-const getMovieById=async (req, res) =>{
+    const response = await fetch(url, {
+        method: "GET",
+        headers: getTmdbHeaders()
+    });
+
+    if (!response.ok) {
+        const body = await response.text();
+        const error = new Error(`TMDB request failed: ${response.status}`);
+        error.status = response.status;
+        error.body = body;
+        throw error;
+    }
+
+    return response.json();
+}
+
+async function searchMovies(req, res) {
+    try {
+        const query = req.query.query || "";
+        if (!query.trim()) {
+            return res.status(400).json({ message: "Query is required." });
+        }
+        const data = await tmdbRequest("/search/movie", {
+            query,
+            language: "en-US",
+            page: req.query.page || 1,
+            include_adult: false
+        });
+        return res.status(200).json(data);
+    } catch (error) {
+        const status = error.status || 500;
+        return res.status(status).json({ message: "Failed to search movies." });
+    }
+}
+
+async function getMovieDetails(req, res) {
     try {
         const { id } = req.params;
-        const movie = await Movie.findById(id);
-        if (!movie) {
-            return res.status(404).json({ message: 'Movie not found' });
-        }
-        res.status(200).json(movie);
+        const data = await tmdbRequest(`/movie/${id}`, { language: "en-US" });
+        return res.status(200).json(data);
     } catch (error) {
-        console.error('Error fetching movie by ID:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        const status = error.status || 500;
+        return res.status(status).json({ message: "Failed to load movie details." });
     }
+}
+
+async function getMovieRecommendations(req, res) {
+    try {
+        const { id } = req.params;
+        const data = await tmdbRequest(`/movie/${id}/recommendations`, {
+            language: "en-US",
+            page: 1
+        });
+        return res.status(200).json(data);
+    } catch (error) {
+        const status = error.status || 500;
+        return res.status(status).json({ message: "Failed to load recommendations." });
+    }
+}
+
+async function getMovieVideos(req, res) {
+    try {
+        const { id } = req.params;
+        const data = await tmdbRequest(`/movie/${id}/videos`, { language: "en-US" });
+        return res.status(200).json(data);
+    } catch (error) {
+        const status = error.status || 500;
+        return res.status(status).json({ message: "Failed to load videos." });
+    }
+}
+
+export {
+    searchMovies,
+    getMovieDetails,
+    getMovieRecommendations,
+    getMovieVideos
 };
-
-
-export {createMovie,getMovies,getMovieById};
