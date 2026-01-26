@@ -15,8 +15,8 @@ function getTmdbHeaders() {
 }
 
 /**
- * Perform a GET request to TMDB with query parameters.
- * Throws an error with status/body when TMDB fails.
+ - Perform a GET request to TMDB with query parameters.
+ - Throws an error with status/body when TMDB fails.
  */
 async function tmdbRequest(path, queryParams = {}) {
     const url = new URL(`${TMDB_BASE_URL}${path}`);
@@ -99,7 +99,7 @@ async function getMovieDetails(req, res) {
 }
 
 /**
- * Load recommended movies for a given TMDB id.
+ - Load recommended movies for a given TMDB id.
  */
 async function getMovieRecommendations(req, res) {
     try {
@@ -116,7 +116,7 @@ async function getMovieRecommendations(req, res) {
 }
 
 /**
- * Fetch movie trailers and videos for the detail page.
+ - Fetch movie trailers and videos for the detail page.
  */
 async function getMovieVideos(req, res) {
     try {
