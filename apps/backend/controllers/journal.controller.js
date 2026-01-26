@@ -1,7 +1,12 @@
 import { JournalEntry } from "../models/journalEntry.model.js";
 
+// Allowed statuses that the UI can apply to a journal entry.
 const VALID_STATUSES = ["none", "want_to_watch", "watched"];
 
+/**
+ - List all journal entries for the current user.
+ - Optional filters: status and favorites.
+ */
 async function listEntries(req, res) {
     try {
         const filters = { user: req.user._id };
@@ -18,6 +23,9 @@ async function listEntries(req, res) {
     }
 }
 
+/**
+ -Create a new journal entry for the current user.
+ */
 async function addEntry(req, res) {
     try {
         const {
@@ -62,6 +70,9 @@ async function addEntry(req, res) {
     }
 }
 
+/**
+ - Update rating, comment, favorite, or status for an entry.
+ */
 async function updateEntry(req, res) {
     try {
         const { id } = req.params;
@@ -99,6 +110,9 @@ async function updateEntry(req, res) {
     }
 }
 
+/**
+ - Delete an entry that belongs to the current user.
+ */
 async function deleteEntry(req, res) {
     try {
         const { id } = req.params;
@@ -112,7 +126,9 @@ async function deleteEntry(req, res) {
     }
 }
 
-// Find a journal entry by TMDB id for the current user.
+/**
+ - Find a journal entry by TMDB id for the current user.
+ */
 async function getEntryByTmdb(req, res) {
     try {
         const tmdbId = Number(req.params.tmdbId);
@@ -135,7 +151,10 @@ async function getEntryByTmdb(req, res) {
     }
 }
 
-// Add or update a favorite entry using the TMDB id.
+/**
+ - Add or update a favorite entry using the TMDB id.
+ - Creates a new entry if the movie is not in the journal yet.
+ */
 async function setFavoriteByTmdb(req, res) {
     try {
         const tmdbId = Number(req.params.tmdbId);

@@ -1,5 +1,6 @@
 import mongoose,{ Schema } from 'mongoose';
 
+// Stores authentication credentials for each user.
 const UserSchema = new Schema({
     username: {
         type: String,

@@ -7,6 +7,7 @@ export const useJournalStore = create((set) => ({
     isLoading: false,
     error: null,
 
+    // Cache a single entry by TMDB id for quick lookup in buttons.
     setEntryByTmdb: (entry) =>
         set((state) => {
             if (!entry?.tmdbId) {
@@ -20,6 +21,7 @@ export const useJournalStore = create((set) => ({
             };
         }),
 
+    // Remove a cached entry by TMDB id.
     removeEntryByTmdb: (tmdbId) =>
         set((state) => {
             if (!tmdbId) {

@@ -7,7 +7,9 @@ import journalRouter from '../routes/journal.route.js';
 import aiRouter from '../routes/ai.route.js';
 
 const app = express();
+// Parse JSON bodies for all incoming requests.
 app.use(express.json());
+// Parse cookies so JWTs can be read by auth middleware.
 app.use(cookieParser());
 app.use(
     cors({
@@ -15,6 +17,7 @@ app.use(
         credentials: true
     })
 );
+// Route groups keep the API surface organized by domain.
 app.use('/api/users', userRouter);
 app.use('/api/movies', movieRouter);
 app.use('/api/journal', journalRouter);

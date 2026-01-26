@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useJournalStore } from "../store/journalStore";
 import { useAuthStore } from "../store/authStore";
 
+// Personal journal screen with tabs for status and favorites.
 const tabs = [
     { label: "Want to Watch", value: "want_to_watch" },
     { label: "Watched", value: "watched" },

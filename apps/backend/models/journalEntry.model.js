@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
+// Stores user-specific movie notes, ratings, and status.
 const JournalEntrySchema = new Schema(
     {
         user: {
@@ -57,6 +58,7 @@ const JournalEntrySchema = new Schema(
     { timestamps: true }
 );
 
+// Prevent duplicate journal entries per user and TMDB id.
 JournalEntrySchema.index({ user: 1, tmdbId: 1 }, { unique: true });
 
 export const JournalEntry = mongoose.model("JournalEntry", JournalEntrySchema);

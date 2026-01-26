@@ -6,6 +6,7 @@ const GEMINI_CACHE_TTL_MS = 5 * 60 * 1000;
 const geminiCache = new Map();
 const geminiInFlight = new Map();
 
+// Build a strict JSON-only prompt to keep the model output structured.
 function buildPrompt(userPrompt) {
     const basePrompt =
         "You are a movie expert. Recommend 8 movies and return only JSON. " +
@@ -17,6 +18,9 @@ function buildPrompt(userPrompt) {
     return `${basePrompt} User preference: ${userPrompt}`;
 }
 
+/**
+ * Generate AI movie picks and cache responses to reduce quota usage.
+ */
 async function getAiPicks(req, res) {
     try {
         const apiKey = process.env.GEMINI_API_KEY;

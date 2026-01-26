@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
+// Optional model for custom movie data (not used by the TMDB-backed flow).
 const MovieSchema = new Schema({
     title: {
         type: String,
@@ -33,6 +34,7 @@ const MovieSchema = new Schema({
     }
 });
 
+// Keep genre arrays small to match UI constraints.
 function arrayLimit(val) {
     return val.length <= 5;
 }

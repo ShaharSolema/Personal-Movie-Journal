@@ -16,6 +16,7 @@ function App() {
     const fetchCurrentUser = useAuthStore((state) => state.fetchCurrentUser);
 
     useEffect(() => {
+        // Restore session on page load or refresh.
         fetchCurrentUser();
     }, [fetchCurrentUser]);
 
@@ -31,6 +32,7 @@ function App() {
             <ScrollToTop />
             <Navbar/>
             <Routes>
+                {/* Public screens */}
                 <Route path="/" element={<Home />}/>
                 <Route path="/search" element={<Search />}/>
                 <Route path="/movie/:id" element={<Moviepage />}/>

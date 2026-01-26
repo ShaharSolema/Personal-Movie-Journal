@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
 
-
+// Sign-in screen that issues a JWT cookie via the backend.
 const SignIn = () => {
     const navigate = useNavigate();
     const[username,SetUsername]=useState("");

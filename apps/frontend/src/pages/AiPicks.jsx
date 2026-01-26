@@ -183,7 +183,7 @@ const AiPicks = () => {
                                             {item.releaseDate
                                                 ? item.releaseDate.slice(0, 4)
                                                 : "Year unknown"}{" "}
-                                            {item.rating ? `• ${item.rating.toFixed(1)}` : ""}
+                                            {item.rating ? `- ${item.rating.toFixed(1)}` : ""}
                                         </p>
                                         <p className="text-sm text-gray-400 mt-2 line-clamp-3">
                                             {item.reason}

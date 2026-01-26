@@ -29,7 +29,7 @@ const SaveButton = ({ movie, onSaved, compact = false }) => {
                 return;
             }
             if (entry) {
-                // "Save for Later" means watchStatus === "want_to_watch".
+                // "Add to Space" means watchStatus === "want_to_watch".
                 setIsSaved(entry.watchStatus === "want_to_watch");
                 setEntryId(entry._id || null);
                 return;
@@ -61,7 +61,7 @@ const SaveButton = ({ movie, onSaved, compact = false }) => {
                 // If already saved, we allow removal even if it's a favorite.
                 const currentEntry = await fetchEntryByTmdb(movie.id);
                 if (currentEntry?.isFavorite) {
-                    // Keep the favorite entry, but remove it from "Save for Later".
+                    // Keep the favorite entry, but remove it from "Want to Watch".
                     await updateEntry(entryId, { watchStatus: "none" });
                     setIsSaved(false);
                     return;
@@ -112,7 +112,7 @@ const SaveButton = ({ movie, onSaved, compact = false }) => {
             onClick={handleSave}
             disabled={isSaving}
             className={buttonClass}
-            title={error || "Save for Later"}
+            title={error || "Add to Space"}
         >
             <Bookmark
                 className={compact ? "w-4 h-4" : "mr-2 w-4 h-5 md:w-5 md:h-5"}
@@ -123,8 +123,8 @@ const SaveButton = ({ movie, onSaved, compact = false }) => {
                     {isSaving
                         ? "Working..."
                         : isSaved
-                        ? "Saved (click to remove)"
-                        : "Save for Later"}
+                        ? "Added to Space (click to remove)"
+                        : "Add to Space"}
                 </span>
             )}
         </button>

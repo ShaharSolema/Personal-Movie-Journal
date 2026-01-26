@@ -6,6 +6,7 @@ import apiClient from "../lib/apiClient";
 import SaveButton from "./SaveButton";
 import LikeButton from "./LikeButton";
 
+// Horizontal carousel of movie cards for a TMDB category.
 const CardList = ({ title, category, onLoaded }) => {
     const [data,setData]=useState([])
     useEffect(()=>{

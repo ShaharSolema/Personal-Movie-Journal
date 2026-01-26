@@ -19,6 +19,7 @@ const authRequired = (req, res, next) => {
         if (!userId) {
             return res.status(401).json({ message: 'Unauthorized.' });
         }
+        // Attach a minimal user payload for downstream controllers.
         req.user = { _id: userId, role: payload.role, username: payload.username };
         return next();
     } catch (error) {

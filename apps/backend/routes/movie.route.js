@@ -9,6 +9,7 @@ import {
 
 const router = Router();
 
+// Public movie discovery/search endpoints proxied through the backend.
 router.get("/search", searchMovies);
 router.get("/category/:category", getMovieList);
 router.get("/:id", getMovieDetails);

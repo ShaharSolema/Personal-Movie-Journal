@@ -7,6 +7,7 @@ import "swiper/css";
 import LikeButton from "./LikeButton";
 import SaveButton from "./SaveButton";
 
+// Hero carousel of upcoming movies for the landing page.
 const Hero = ({ onLoaded }) => {
     const [movies, setMovies] = useState([]);
 
