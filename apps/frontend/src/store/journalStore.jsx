@@ -3,29 +3,75 @@ import apiClient from "../lib/apiClient";
 
 export const useJournalStore = create((set) => ({
     entries: [],
+    entriesByTmdb: {},
     isLoading: false,
     error: null,
 
+    // Cache a single entry by TMDB id for quick lookup in buttons.
+    setEntryByTmdb: (entry) =>
+        set((state) => {
+            if (!entry?.tmdbId) {
+                return state;
+            }
+            return {
+                entriesByTmdb: {
+                    ...state.entriesByTmdb,
+                    [entry.tmdbId]: entry
+                }
+            };
+        }),
+
+    // Remove a cached entry by TMDB id.
+    removeEntryByTmdb: (tmdbId) =>
+        set((state) => {
+            if (!tmdbId) {
+                return state;
+            }
+            const next = { ...state.entriesByTmdb };
+            delete next[tmdbId];
+            return { entriesByTmdb: next };
+        }),
+
     // Update an entry locally for instant UI feedback (optimistic update).
     setEntryLocal: (id, updates) =>
-        set((state) => ({
-            entries: state.entries.map((entry) =>
+        set((state) => {
+            const entries = state.entries.map((entry) =>
                 entry._id === id ? { ...entry, ...updates } : entry
-            )
-        })),
+            );
+            const entriesByTmdb = entries.reduce((acc, entry) => {
+                if (entry?.tmdbId) {
+                    acc[entry.tmdbId] = entry;
+                }
+                return acc;
+            }, {});
+            return { entries, entriesByTmdb };
+        }),
 
     // Remove an entry locally (used when moving between tabs).
     removeEntryLocal: (id) =>
-        set((state) => ({
-            entries: state.entries.filter((entry) => entry._id !== id)
-        })),
+        set((state) => {
+            const entries = state.entries.filter((entry) => entry._id !== id);
+            const entriesByTmdb = entries.reduce((acc, entry) => {
+                if (entry?.tmdbId) {
+                    acc[entry.tmdbId] = entry;
+                }
+                return acc;
+            }, {});
+            return { entries, entriesByTmdb };
+        }),
 
     // Fetch all journal entries for the current user.
     fetchEntries: async (params = {}) => {
         set({ isLoading: true, error: null });
         try {
             const response = await apiClient.get(`/journal`, { params });
-            set({ entries: response.data, isLoading: false });
+            const entriesByTmdb = response.data.reduce((acc, entry) => {
+                if (entry?.tmdbId) {
+                    acc[entry.tmdbId] = entry;
+                }
+                return acc;
+            }, {});
+            set({ entries: response.data, entriesByTmdb, isLoading: false });
             return response.data;
         } catch (error) {
             set({
@@ -43,6 +89,12 @@ export const useJournalStore = create((set) => ({
         }
         try {
             const response = await apiClient.get(`/journal/tmdb/${tmdbId}`);
+            set((state) => ({
+                entriesByTmdb: {
+                    ...state.entriesByTmdb,
+                    [tmdbId]: response.data
+                }
+            }));
             return response.data;
         } catch (error) {
             return null;
@@ -56,6 +108,10 @@ export const useJournalStore = create((set) => ({
             const response = await apiClient.post(`/journal`, payload);
             set((state) => ({
                 entries: [response.data, ...state.entries],
+                entriesByTmdb: {
+                    ...state.entriesByTmdb,
+                    [response.data?.tmdbId]: response.data
+                },
                 isLoading: false
             }));
             return response.data;
@@ -77,6 +133,10 @@ export const useJournalStore = create((set) => ({
                 entries: state.entries.map((entry) =>
                     entry._id === id ? response.data : entry
                 ),
+                entriesByTmdb: {
+                    ...state.entriesByTmdb,
+                    [response.data?.tmdbId]: response.data
+                },
                 isLoading: false
             }));
             return response.data;
@@ -96,6 +156,12 @@ export const useJournalStore = create((set) => ({
             await apiClient.delete(`/journal/${id}`);
             set((state) => ({
                 entries: state.entries.filter((entry) => entry._id !== id),
+                entriesByTmdb: state.entries.reduce((acc, entry) => {
+                    if (entry._id !== id && entry?.tmdbId) {
+                        acc[entry.tmdbId] = entry;
+                    }
+                    return acc;
+                }, {}),
                 isLoading: false
             }));
         } catch (error) {

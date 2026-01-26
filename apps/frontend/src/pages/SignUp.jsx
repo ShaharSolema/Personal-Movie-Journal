@@ -3,6 +3,7 @@ import bg from "../../png/background.png";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
+// Sign-up screen that creates a user account.
 const SignUp = () => {
    const navigate = useNavigate();
    const[username,SetUsername]=useState("");

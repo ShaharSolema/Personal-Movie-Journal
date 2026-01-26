@@ -4,6 +4,7 @@ import apiClient from "../lib/apiClient";
 import SaveButton from "../components/SaveButton";
 import LikeButton from "../components/LikeButton";
 
+// Search screen that proxies movie queries through the backend.
 const Search = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const initialQuery = searchParams.get("q") || "";

@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
+// Top navigation bar with search and session actions.
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();

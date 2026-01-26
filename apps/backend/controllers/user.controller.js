@@ -2,8 +2,16 @@ import {User} from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+// JWT tokens expire after a week to balance security and convenience.
 const TOKEN_EXPIRY = "7d";
 
+/**
+ - Register a new user.
+ - Validates input
+ - Hashes the password
+ - Stores a normalized username/email
+ - Returns a JWT cookie + public user data
+ */
 async function registerUser(req, res) {
     try {
         const { username, email, password } = req.body;
@@ -58,6 +66,10 @@ async function registerUser(req, res) {
         res.status(500).json({ message: 'Internal server error' });
     }
 }
+
+/**
+ - Authenticate a user and issue a new JWT cookie.
+ */
 async function loginUser(req, res) {
     try {
         const { username, password } = req.body;
@@ -99,6 +111,9 @@ async function loginUser(req, res) {
     }
 }
 
+/**
+ - Clear the auth cookie for the current user.
+ */
 async function logoutUser(req, res) {
     try {
         res.clearCookie('token', {
@@ -114,6 +129,10 @@ async function logoutUser(req, res) {
     }
 }
 
+/**
+ - Update the current user's profile fields.
+ - Only username/email can be changed and must remain unique.
+ */
 async function updateUser(req, res) {
     try {
         const {newUsername, newEmail} = req.body;
@@ -161,6 +180,10 @@ async function updateUser(req, res) {
         res.status(500).json({ message: 'Internal server error' });
     }
 }
+
+/**
+ - Return the currently authenticated user's profile.
+ */
 async function getCurrentUser(req, res) {
     try {
         const user = await User.findById(req.user._id).select('username email role');

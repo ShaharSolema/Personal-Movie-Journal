@@ -11,6 +11,7 @@ import {
 
 const router = Router();
 
+// All journal routes require authentication.
 router.use(authRequired);
 router.get("/", listEntries);
 router.post("/", addEntry);

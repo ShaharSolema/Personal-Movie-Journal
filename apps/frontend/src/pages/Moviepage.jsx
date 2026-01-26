@@ -8,6 +8,7 @@ import apiClient from "../lib/apiClient";
 import SaveButton from "../components/SaveButton";
 import LikeButton from "../components/LikeButton";
 
+// Movie detail screen with trailer, metadata, and add-to-space actions.
 const Moviepage = () => {
     const { id } = useParams();
     const [movie, setMovie] = useState(null);
@@ -92,7 +93,7 @@ const Moviepage = () => {
         };
     }, [id]);
 
-    // "Add to Space" was removed; SaveButton handles save/remove.
+    // "Add to Space" action is handled by SaveButton.
 
     if (!movie) {
         return (

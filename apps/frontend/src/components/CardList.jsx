@@ -2,34 +2,43 @@ import {Swiper,SwiperSlide} from 'swiper/react';
 import 'swiper/css';
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import apiClient from "../lib/apiClient";
 import SaveButton from "./SaveButton";
 import LikeButton from "./LikeButton";
 
-const TMDB_OPTIONS = {
-    method: "GET",
-    headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN || ""}`
-    }
-};
-
-
+// Horizontal carousel of movie cards for a TMDB category.
 const CardList = ({ title, category, onLoaded }) => {
     const [data,setData]=useState([])
     useEffect(()=>{
-        fetch(
-            `https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1`,
-            TMDB_OPTIONS
-        )
-            .then(res => res.json())
-            .then(res => setData(res.results))
-            .catch(err => console.error(err))
-            .finally(() => {
+        let isActive = true;
+        const loadCategory = async () => {
+            try {
+                const response = await apiClient.get(`/movies/category/${category}`, {
+                    params: { page: 1 }
+                });
+                if (!isActive) {
+                    return;
+                }
+                setData(response.data?.results || []);
+            } catch (err) {
+                if (!isActive) {
+                    return;
+                }
+                console.error(err);
+                setData([]);
+            } finally {
                 // Notify parent that this card list finished loading.
                 if (onLoaded) {
                     onLoaded(category);
                 }
-            });
+            }
+        };
+
+        loadCategory();
+
+        return () => {
+            isActive = false;
+        };
         },[category]);
     return (
         <div className="text-white md:px-4 ">

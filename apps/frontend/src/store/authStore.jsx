@@ -8,7 +8,7 @@ export const useAuthStore = create((set) => ({
     message: null,
     fetchingUser: false,
 
-
+    // Register a new user and store the user profile on success.
     signup: async (username, email, password) => {
         set({ isLoading: true, message: null });
 
@@ -27,6 +27,7 @@ export const useAuthStore = create((set) => ({
 
     },
 
+    // Log in and cache the user profile in state.
     login:async (username,password)=>{
         set({isLoading:true,message:null,error:null});
         try {
@@ -51,6 +52,7 @@ export const useAuthStore = create((set) => ({
         }
     },
 
+    // Attempt to load the currently authenticated user (session restore).
     fetchCurrentUser: async () => {
         set({ fetchingUser: true, error: null });
         try {
@@ -63,6 +65,7 @@ export const useAuthStore = create((set) => ({
         }
     },
 
+    // Invalidate the session cookie on the server and clear local state.
     logout: async () => {
         try {
             await apiClient.post(`/users/logout`);
